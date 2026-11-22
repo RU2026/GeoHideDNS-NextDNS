@@ -131,7 +131,7 @@ def main():
     # Получаем существующие записи
     print("Получаю текущие записи NextDNS...")
 
-    result = request("GET", endpoint + "?limit=500")
+    result = request("GET", endpoint)
     existing = result.get("data", [])
 
     try:
