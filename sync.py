@@ -3,6 +3,8 @@ import os
 import json
 import ipaddress
 import requests
+import time
+import random
 
 SOURCE_URL = "https://raw.githubusercontent.com/Internet-Helper/GeoHideDNS/refs/heads/main/hosts/hosts"
 
@@ -24,28 +26,53 @@ BLOCKS = {
 
 
 
+
 def request(method, url, **kwargs):
-    r = requests.request(
-        method,
-        url,
-        headers=HEADERS,
-        timeout=40,
-        **kwargs
-    )
+    for attempt in range(7):
+        r = requests.request(
+            method,
+            url,
+            headers=HEADERS,
+            timeout=40,
+            **kwargs
+        )
 
-    if not r.ok:
-        print("ОШИБКА NEXTDNS API:")
-        print("HTTP:", r.status_code)
-        print("Ответ сервера:", r.text)
-        r.raise_for_status()
+        if r.status_code == 429:
+            retry = r.headers.get("Retry-After")
 
-    data = r.json()
+            try:
+                wait = float(retry) if retry else min(30 * (2 ** attempt), 600)
+            except ValueError:
+                wait = min(30 * (2 ** attempt), 600)
 
-    if data.get("errors"):
-        raise RuntimeError(str(data["errors"]))
+            wait += random.uniform(1, 5)
 
-    return data
+            print(
+                f"NextDNS ограничил запросы. "
+                f"Попытка {attempt + 1}/7. "
+                f"Ожидание {wait:.0f} секунд."
+            )
 
+            if attempt == 6:
+                r.raise_for_status()
+
+            time.sleep(wait)
+            continue
+
+        if not r.ok:
+            print("ОШИБКА NEXTDNS API:")
+            print("HTTP:", r.status_code)
+            print("Ответ:", r.text)
+            r.raise_for_status()
+
+        data = r.json()
+
+        if data.get("errors"):
+            raise RuntimeError(str(data["errors"]))
+
+        return data
+
+    raise RuntimeError("Превышено количество попыток NextDNS API")
 
 
 def main():
@@ -104,7 +131,7 @@ def main():
     # Получаем существующие записи
     print("Получаю текущие записи NextDNS...")
 
-    result = request("GET", endpoint)
+    result = request("GET", endpoint + "?limit=500")
     existing = result.get("data", [])
 
     try:
@@ -136,6 +163,7 @@ def main():
 
         if item:
             request("DELETE", f"{endpoint}/{item['id']}")
+            time.sleep(1.5)
 
         request(
             "POST",
@@ -145,6 +173,7 @@ def main():
                 "content": ip
             }
         )
+        time.sleep(1.5)
 
         print("Добавлен:", domain, "->", ip)
 
