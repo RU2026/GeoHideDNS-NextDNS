@@ -23,18 +23,29 @@ BLOCKS = {
 }
 
 
+
 def request(method, url, **kwargs):
     r = requests.request(
-        method, url, headers=HEADERS,
-        timeout=40, **kwargs
+        method,
+        url,
+        headers=HEADERS,
+        timeout=40,
+        **kwargs
     )
-    r.raise_for_status()
+
+    if not r.ok:
+        print("ОШИБКА NEXTDNS API:")
+        print("HTTP:", r.status_code)
+        print("Ответ сервера:", r.text)
+        r.raise_for_status()
+
     data = r.json()
 
     if data.get("errors"):
         raise RuntimeError(str(data["errors"]))
 
     return data
+
 
 
 def main():
