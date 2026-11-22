@@ -99,12 +99,12 @@ def main():
     with open("hosts.txt", "w", encoding="utf-8") as f:
         f.write("\n".join(selected) + "\n")
 
-    endpoint = f"{API}/profiles/{PROFILE}/rewrites"
+    endpoint = f"{API}/profiles/{PROFILE}/rewrites/"
 
     # Получаем существующие записи
     print("Получаю текущие записи NextDNS...")
 
-    result = request("GET", endpoint + "?limit=500")
+    result = request("GET", endpoint)
     existing = result.get("data", [])
 
     try:
