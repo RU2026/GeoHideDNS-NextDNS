@@ -6,7 +6,7 @@ import requests
 import time
 import random
 
-SOURCE_URL = "https://raw.githubusercontent.com/Internet-Helper/GeoHideDNS/refs/heads/main/hosts/hosts"
+SOURCE_URL = "https://raw.githubusercontent.com/Internet-Helper/GeoHideDNS/refs/heads/main/hosts/eu/hosts"
 
 API = "https://api.nextdns.io"
 KEY = os.environ["NEXTDNS_API_KEY"]
