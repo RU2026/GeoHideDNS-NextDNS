@@ -20,8 +20,7 @@ HEADERS = {
 BLOCKS = {
     "# Supercell",
     "# Google Gemini AI",
-    "# ChatGPT (OpenAI) AI",
-    "# Claude AI"
+    "# ChatGPT (OpenAI) AI"
 }
 
 
